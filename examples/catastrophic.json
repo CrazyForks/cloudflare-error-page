@@ -16,5 +16,5 @@
     },
     "error_source": "cloudflare",
     "what_happened": "<p>There is a catastrophic failure.</p>",
-    "what_can_i_do": "<p>Please try again in a few years.</p>",
+    "what_can_i_do": "<p>Please try again in a few years.</p>"
 }

@@ -40,4 +40,4 @@ def render(params: dict, allow_html: bool=True, use_cdn: bool=True) -> str:
         params['what_happened'] = html.escape(params.get('what_happened', ''))
         params['what_can_i_do'] = html.escape(params.get('what_can_i_do', ''))
 
-    return template.render(params=params, resources_use_cdn=use_cdn)
+    return default_template.render(params=params, resources_use_cdn=use_cdn)

@@ -40,7 +40,6 @@ def get_page_params(name: str) -> dict:
 def index(name: str):
     name = os.path.basename(name)  # keep only the base name
     lower_name = name.lower()
-    print(lower_name, name)
     if name != lower_name:
         return redirect(lower_name)
     else:
