@@ -5,13 +5,14 @@ import os
 import secrets
 import string
 import sys
+import tomllib
 
-from flask import Flask, request
+from flask import Flask, redirect, request, url_for
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import event
 from sqlalchemy.orm import DeclarativeBase
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 root_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../')
 sys.path.append(root_dir)
@@ -28,29 +29,46 @@ limiter: Limiter = Limiter(
     key_func=get_remote_address,  # Uses client's IP address by default
 )
 
-def generate_secret(length=32) -> str:
+def _generate_secret(length=32) -> str:
     characters = string.ascii_letters + string.digits  # A-Z, a-z, 0-9
     return ''.join(secrets.choice(characters) for _ in range(length))
 
 
+def _initialize_app_config(app: Flask):
+    if app.config.get('BEHIND_PROXY', True):
+        app.wsgi_app = ProxyFix(
+            app.wsgi_app, x_for=1, x_proto=1
+        )
+    app.json.ensure_ascii = False
+    app.json.mimetype = "application/json; charset=utf-8"
+    secret_key = app.config.get('SECRET_KEY', '')
+    if secret_key:
+        app.secret_key = secret_key
+    else:
+        app.logger.info('Using generated secret')
+        app.secret_key = _generate_secret()
+
+    app.config["SQLALCHEMY_DATABASE_URI"] = app.config.get('SQLALCHEMY_DATABASE_URI', 'sqlite:///example.db')
+    if app.config["SQLALCHEMY_DATABASE_URI"].startswith('sqlite'):
+        app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+            'isolation_level': 'SERIALIZABLE',
+            # "execution_options": {"autobegin": False}
+        }
+
+
 def create_app(test_config=None) -> Flask:
-    instance_path = os.getenv('INSTANCE_PATH', None)
+    instance_path = os.getenv('INSTANCE_PATH')
     if instance_path is not None:
+        instance_path = os.path.abspath(instance_path)
         os.makedirs(instance_path, exist_ok=True)
+        print(f'App instance path: {instance_path}')
+
     app = Flask(__name__,
         instance_path=instance_path,
         instance_relative_config=True
     )
-    app.json.ensure_ascii = False
-    app.json.mimetype = "application/json; charset=utf-8"
-    secret_key = os.getenv('SECRET_KEY', '')
-    if secret_key:
-        app.secret_key = secret_key
-    else:
-        print('Using generated secret')
-        app.secret_key = generate_secret()
-    app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv('DATABASE_URI', 'sqlite:///example.db')
-    url_prefix = os.getenv('URL_PREFIX', '')
+    app.config.from_file("config.toml", load=tomllib.load, text=False)
+    _initialize_app_config(app)
 
 
     from . import utils
@@ -59,28 +77,17 @@ def create_app(test_config=None) -> Flask:
     from . import editor
     from . import share
 
-    if app.config["SQLALCHEMY_DATABASE_URI"].startswith('sqlite'):
-        app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
-            'isolation_level': 'SERIALIZABLE',
-            # "execution_options": {"autobegin": False}
-        }
     db.init_app(app)
     limiter.init_app(app)
-    
-    
+
     with app.app_context():
         db.create_all()
-        # if db.engine.dialect.name == 'sqlite':
-        #     @event.listens_for(db.engine, "connect")
-        #     def enable_foreign_keys(dbapi_connection, connection_record):
-        #         cursor = dbapi_connection.cursor()
-        #         cursor.execute("PRAGMA foreign_keys=ON;")
-        #         cursor.close()
 
     @app.route('/health')
     def health():
         return '', 204
 
+    url_prefix = app.config.get('URL_PREFIX', '')
     app.register_blueprint(editor.bp, url_prefix=f'{url_prefix}/editor')
     app.register_blueprint(examples.bp, url_prefix=f'{url_prefix}/examples')
     app.register_blueprint(share.bp, url_prefix=f'{url_prefix}/s')
@@ -88,5 +95,4 @@ def create_app(test_config=None) -> Flask:
     return app
 
 
-
-__all__ = ['create_app', 'db', 'get_common_cf_template_params', 'render_cf_error_page']
+__all__ = ['create_app']

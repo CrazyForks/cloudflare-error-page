@@ -43,11 +43,10 @@ def fill_cf_template_params(params: dict):
             if loc:
                 cf_status['location'] = loc
 
-    # Get real client ip from Cloudflare header or request.remote_addr
-    client_ip = request.headers.get('X-Forwarded-For')
-    if not client_ip:
-        client_ip = request.remote_addr
-    params['client_ip'] = client_ip
+    # Get real client ip from remote_addr
+    # If this server is behind proxies (e.g CF CDN / Nginx), make sure to set 'BEHIND_PROXY'=True in app config. Then ProxyFix will fix this variable
+    # using X-Forwarded-For header from the proxy.
+    params['client_ip'] = request.remote_addr
 
 
 def sanitize_user_link(link: str):
