@@ -140,6 +140,16 @@ params = {
 
 [Demo](https://virt.moe/cloudflare-error-page/examples/working)
 
+## See also
+
+- [cloudflare-error-page-3th.pages.dev](https://cloudflare-error-page-3th.pages.dev/):
+
+    Error page of every HTTP status code (reload to show random page).
+
+- [oftx/cloudflare-error-page](https://github.com/oftx/cloudflare-error-page):
+
+    React reimplementation of the original page, and can be deployed directly to Cloudflare Pages.
+
 
 ## Full Parameter Reference
 ``` JavaScript
