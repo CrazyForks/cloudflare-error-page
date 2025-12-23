@@ -4,9 +4,9 @@
 <!--[if IE 8]>    <html class="no-js ie8 oldie" lang="en-US"> <![endif]-->
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en-US"> <!--<![endif]-->
 <head>
-<% const error_code = params.error_code || 500; %>
-<% const title = params.title || 'Internal server error'; %>
-<% const html_title = params.html_title || (error_code + ': ' + title); %>
+<% const error_code = params.error_code || 500; -%>
+<% const title = params.title || 'Internal server error'; -%>
+<% const html_title = params.html_title || (error_code + ': ' + title); -%>
 <title><%= html_title %></title>
 <meta charset="UTF-8" />
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
@@ -14,7 +14,7 @@
 <meta name="robots" content="noindex, nofollow" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <style>
-<%- html_style %>
+<%- html_style -%>
 </style>
 </head>
 <body>
@@ -25,18 +25,18 @@
                 <span class="inline-block"><%= title %></span>
                 <span class="code-label">Error code <%= error_code %></span>
             </h1>
-            <% const more_info = params.more_information || {}; %>
-            <% if (!more_info.hidden) { %>
+            <%_ const more_info = params.more_information || {}; -%>
+            <%_ if (!more_info.hidden) { -%>
             <div>
                 Visit <a href="<%= more_info.link || 'https://www.cloudflare.com/' %>" target="_blank" rel="noopener noreferrer"><%= more_info.text || 'cloudflare.com' %></a> for <%= more_info.for || 'more information' %>.
             </div>
-            <% } %>
+            <%_ } -%>
             <div class="<%= more_info.hidden ? '' : 'mt-3' %>"><%= params.time %></div>
         </header>
         <div class="my-8 bg-gradient-gray">
-          <div class="w-240 lg:w-full mx-auto">
+            <div class="w-240 lg:w-full mx-auto">
                 <div class="clearfix md:px-8">
-                <% 
+                <%_
                 const items = [
                     { id: 'browser', icon: 'browser', default_location: 'You', default_name: 'Browser' },
                     { id: 'cloudflare', icon: 'cloud', default_location: 'San Francisco', default_name: 'Cloudflare' },
@@ -55,7 +55,7 @@
                     }
                     const status_text = item.status_text || (status === 'ok' ? 'Working' : 'Error');
                     const is_error_source = params.error_source === id;
-                %>
+                -%>
                     <div id="cf-<%= id %>-status" class="<%= is_error_source ? 'cf-error-source' : '' %> relative w-1/3 md:w-full py-15 md:p-0 md:py-8 md:text-left md:border-solid md:border-0 md:border-b md:border-gray-400 overflow-hidden float-left md:float-none text-center">
                         <div class="relative mb-10 md:m-0">
                             <span class="cf-icon-<%= icon %> block md:hidden h-20 bg-center bg-no-repeat"></span>
@@ -65,7 +65,7 @@
                         <h3 class="md:inline-block mt-3 md:mt-0 text-2xl text-gray-600 font-light leading-1.3" <%- (item.name || default_name) === 'Cloudflare' ? 'style="color: #2f7bbf;"' : '' %>><%= item.name || default_name %></h3>
                         <span class="leading-1.3 text-2xl" style="color: <%= text_color %>"><%= status_text %></span>
                     </div>
-                <% }); %>
+                <%_ }); -%>
                 </div>
             </div>
         </div>
@@ -95,12 +95,11 @@
                 </span>
                 <% const perf_sec_by = params.perf_sec_by || {}; %>
                 <span class="cf-footer-item sm:block sm:mb-1"><span>Performance &amp; security by</span> <a rel="noopener noreferrer" href="<%= perf_sec_by.link || 'https://www.cloudflare.com/' %>" id="brand_link" target="_blank"><%= perf_sec_by.text || 'Cloudflare' %></a></span>
-
-                <% const creator_info = params.creator_info || {}; %>
-                <% if (!(creator_info.hidden ?? true)) { %>
+                <%_ const creator_info = params.creator_info || {}; _%>
+                <%_ if (!(creator_info.hidden ?? true)) { _%>
                 <span class="cf-footer-separator sm:hidden">&bull;</span>
                 <span class="cf-footer-item sm:block sm:mb-1">Created with <a href="<%= creator_info.link %>" target="_blank"><%= creator_info.text %></a></span>
-                <% } %>
+                <%_ } -%>
             </p>
         </div><!-- /.error-footer -->
     </div>
